@@ -12,6 +12,7 @@ import {useNavigate, useParams} from "react-router-dom";
 import {BarLoader, BeatLoader} from "react-spinners";
 
 const LinkPage = () => {
+  const baseDomain = window.location.origin;
   const downloadImage = () => {
     const imageUrl = url?.qr;
     const fileName = url?.title;
@@ -76,11 +77,11 @@ const LinkPage = () => {
             {url?.title}
           </span>
           <a
-            href={`https://trimrr.in/${link}`}
+            href={`${baseDomain.replace(/\/$/, "")}/${link}`}
             target="_blank"
             className="text-3xl sm:text-4xl text-blue-400 font-bold hover:underline cursor-pointer"
           >
-            https://trimrr.in/{link}
+            {baseDomain.replace(/\/$/, "")}/{link}
           </a>
           <a
             href={url?.original_url}
