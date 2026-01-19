@@ -1,4 +1,5 @@
 import supabase, {supabaseUrl} from "./supabase";
+import bcrypt from "bcryptjs";
 
 export async function getUrls(user_id) {
   let {data, error} = await supabase
@@ -45,7 +46,7 @@ export async function getLongUrl(id) {
   return shortLinkData;
 }
 
-export async function createUrl({title, longUrl, customUrl, user_id}, qrcode) {
+export async function createUrl({title, longUrl, customUrl, user_id,password}, qrcode) {
   const short_url = Math.random().toString(36).substr(2, 6);
   const fileName = `qr-${short_url}`;
 
@@ -57,6 +58,9 @@ export async function createUrl({title, longUrl, customUrl, user_id}, qrcode) {
 
   const qr = `${supabaseUrl}/storage/v1/object/public/qrs/${fileName}`;
 
+   const is_protected = !!password?.trim();
+  const password_hash = is_protected ? await bcrypt.hash(password.trim(), 10) : null;
+
   const {data, error} = await supabase
     .from("urls")
     .insert([
@@ -67,6 +71,8 @@ export async function createUrl({title, longUrl, customUrl, user_id}, qrcode) {
         custom_url: customUrl || null,
         short_url,
         qr,
+      is_protected,
+      password_hash,
       },
     ])
     .select();
