@@ -62,5 +62,8 @@ export const storeClicks = async ({id, originalUrl}) => {
     window.location.href = originalUrl;
   } catch (error) {
     console.error("Error recording click:", error);
+  }finally {
+    // 🚀 ALWAYS redirect, even if stats fail
+    window.location.href = originalUrl;
   }
 };
