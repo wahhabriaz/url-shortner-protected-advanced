@@ -21,7 +21,7 @@ import {QRCode} from "react-qrcode-logo";
 
 export function CreateLink() {
   const {user} = UrlState();
-
+const baseDomain = window.location.origin;
   const navigate = useNavigate();
   const ref = useRef();
 
@@ -118,7 +118,7 @@ export function CreateLink() {
         />
         {errors.longUrl && <Error message={errors.longUrl} />}
         <div className="flex items-center gap-2">
-          <Card className="p-2">trimrr.in</Card> /
+          <Card className="p-2">{baseDomain.replace(/\/$/, "")}</Card> /
           <Input
             id="customUrl"
             placeholder="Custom Link (optional)"
