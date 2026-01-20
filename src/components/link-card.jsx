@@ -31,6 +31,7 @@ const LinkCard = ({url = [], fetchUrls}) => {
 
   return (
     <div className="flex flex-col md:flex-row gap-5 border p-4 bg-gray-900 rounded-lg">
+      
       <img
         src={url?.qr}
         className="h-32 object-contain ring ring-blue-500 self-start"
@@ -39,7 +40,14 @@ const LinkCard = ({url = [], fetchUrls}) => {
       <Link to={`/link/${url?.id}`} className="flex flex-col flex-1">
         <span className="text-3xl font-extrabold hover:underline cursor-pointer">
           {url?.title}
+           {url?.is_protected && (
+  <span className="ml-2 inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold border">
+    Protected
+  </span>
+)}
         </span>
+       
+
         <span className="text-2xl text-blue-400 font-bold hover:underline cursor-pointer">
           {baseDomain.replace(/\/$/, "")}/{url?.custom_url ? url?.custom_url : url.short_url}
         </span>
