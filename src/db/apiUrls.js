@@ -95,3 +95,22 @@ export async function deleteUrl(id) {
 
   return data;
 }
+export async function updateUrlProtection({ id, user_id, is_protected, password_hash }) {
+  const { data, error } = await supabase
+    .from("urls")
+    .update({
+      is_protected,
+      password_hash,
+    })
+    .eq("id", id)
+    .eq("user_id", user_id)
+    .select()
+    .single();
+
+  if (error) {
+    console.error(error);
+    throw new Error("Unable to update protection");
+  }
+
+  return data;
+}
