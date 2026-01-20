@@ -21,7 +21,7 @@ import {QRCode} from "react-qrcode-logo";
 
 export function CreateLink() {
   const {user} = UrlState();
-const baseDomain = window.location.origin;
+  const baseDomain = window.location.origin;
   const navigate = useNavigate();
   const ref = useRef();
 
@@ -33,6 +33,8 @@ const baseDomain = window.location.origin;
     title: "",
     longUrl: longLink ? longLink : "",
     customUrl: "",
+    isProtected: false, // ✅ toggle
+    password: "", // ✅ only used if isProtected is true
   });
 
   const schema = yup.object().shape({
@@ -42,12 +44,31 @@ const baseDomain = window.location.origin;
       .url("Must be a valid URL")
       .required("Long URL is required"),
     customUrl: yup.string(),
+    isProtected: yup.boolean(),
+    password: yup.string().when("isProtected", {
+      is: true,
+      then: (s) => s.required("Password is required").min(4, "Min 4 characters"),
+      otherwise: (s) => s.notRequired(),
+    }),
   });
 
   const handleChange = (e) => {
-    setFormValues({
-      ...formValues,
-      [e.target.id]: e.target.value,
+    const {id, value, type, checked} = e.target;
+
+    setFormValues((prev) => {
+      // If user turns OFF protection, clear password
+      if (id === "isProtected") {
+        return {
+          ...prev,
+          isProtected: checked,
+          password: checked ? prev.password : "",
+        };
+      }
+
+      return {
+        ...prev,
+        [id]: type === "checkbox" ? checked : value,
+      };
     });
   };
 
@@ -56,7 +77,12 @@ const baseDomain = window.location.origin;
     error,
     data,
     fn: fnCreateUrl,
-  } = useFetch(createUrl, {...formValues, user_id: user.id});
+  } = useFetch(createUrl, {
+    ...formValues,
+    // ✅ only pass password when protected
+    password: formValues.isProtected ? formValues.password : "",
+    user_id: user.id,
+  });
 
   useEffect(() => {
     if (error === null && data) {
@@ -76,11 +102,9 @@ const baseDomain = window.location.origin;
       await fnCreateUrl(blob);
     } catch (e) {
       const newErrors = {};
-
       e?.inner?.forEach((err) => {
         newErrors[err.path] = err.message;
       });
-
       setErrors(newErrors);
     }
   };
@@ -95,10 +119,12 @@ const baseDomain = window.location.origin;
       <DialogTrigger asChild>
         <Button variant="destructive">Create New Link</Button>
       </DialogTrigger>
+
       <DialogContent className="sm:max-w-md">
         <DialogHeader>
           <DialogTitle className="font-bold text-2xl">Create New</DialogTitle>
         </DialogHeader>
+
         {formValues?.longUrl && (
           <QRCode ref={ref} size={250} value={formValues?.longUrl} />
         )}
@@ -110,6 +136,7 @@ const baseDomain = window.location.origin;
           onChange={handleChange}
         />
         {errors.title && <Error message={errors.title} />}
+
         <Input
           id="longUrl"
           placeholder="Enter your Loooong URL"
@@ -117,6 +144,7 @@ const baseDomain = window.location.origin;
           onChange={handleChange}
         />
         {errors.longUrl && <Error message={errors.longUrl} />}
+
         <div className="flex items-center gap-2">
           <Card className="p-2">{baseDomain.replace(/\/$/, "")}</Card> /
           <Input
@@ -126,7 +154,35 @@ const baseDomain = window.location.origin;
             onChange={handleChange}
           />
         </div>
+
+        {/* ✅ Toggle row */}
+        <div className="flex items-center justify-between mt-2">
+          <div className="text-sm opacity-80">Protect with password</div>
+          <input
+            id="isProtected"
+            type="checkbox"
+            checked={formValues.isProtected}
+            onChange={handleChange}
+            className="h-4 w-4"
+          />
+        </div>
+
+        {/* ✅ Password only when toggled ON */}
+        {formValues.isProtected && (
+          <>
+            <Input
+              id="password"
+              type="password"
+              placeholder="Password"
+              value={formValues.password}
+              onChange={handleChange}
+            />
+            {errors.password && <Error message={errors.password} />}
+          </>
+        )}
+
         {error && <Error message={errors.message} />}
+
         <DialogFooter className="sm:justify-start">
           <Button
             type="button"
